@@ -306,45 +306,22 @@ export default function DashboardScreen({
       {/* KPI row — analyst only */}
       {role === 'analyst' && kpi && (
         <div
-          className="flex-shrink-0 grid grid-cols-2 sm:grid-cols-4 gap-px"
-          style={{ background: 'var(--border)' }}
+          className="flex-shrink-0 flex items-center gap-px"
+          style={{ background: 'var(--border)', borderBottom: '1px solid var(--border)' }}
         >
           {[
-            {
-              label: 'Обращений',
-              value: kpi.total.toLocaleString('ru-RU'),
-              sub: 'всего за период',
-              color: 'var(--text)',
-            },
-            {
-              label: 'Проблемных',
-              value: `${((kpi.problems / kpi.total) * 100).toFixed(1)}%`,
-              sub: `${kpi.problems.toLocaleString('ru-RU')} обращений`,
-              color: '#f97316',
-            },
-            {
-              label: 'Критических МО',
-              value: critical.length,
-              sub: 'требуют реагирования',
-              color: '#dc2626',
-            },
-            {
-              label: 'Муниципалитетов',
-              value: districts.length,
-              sub: 'охвачено анализом',
-              color: '#3b82f6',
-            },
+            { label: 'Обращений',     value: kpi.total.toLocaleString('ru-RU'),                          color: 'var(--text)' },
+            { label: 'Проблемных',    value: `${((kpi.problems / kpi.total) * 100).toFixed(1)}%`,        color: '#f97316' },
+            { label: 'Критических МО',value: critical.length,                                             color: '#dc2626' },
+            { label: 'Охвачено МО',   value: districts.length,                                           color: '#3b82f6' },
           ].map((item) => (
             <div
               key={item.label}
-              className="flex flex-col justify-center px-4 py-3"
+              className="flex items-center gap-2 px-4 py-1.5 flex-1"
               style={{ background: 'var(--bg-card)' }}
             >
-              <div className="text-xl sm:text-2xl font-black tabular-nums" style={{ color: item.color }}>
-                {item.value}
-              </div>
-              <div className="text-xs font-semibold mt-0.5" style={{ color: 'var(--text)' }}>{item.label}</div>
-              <div className="text-[10px] mt-0.5" style={{ color: 'var(--muted)' }}>{item.sub}</div>
+              <span className="text-base font-black tabular-nums" style={{ color: item.color }}>{item.value}</span>
+              <span className="text-xs" style={{ color: 'var(--muted)' }}>{item.label}</span>
             </div>
           ))}
         </div>
