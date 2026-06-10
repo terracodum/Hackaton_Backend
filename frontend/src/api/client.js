@@ -200,4 +200,16 @@ export const api = {
     const res = await fetch(api.departmentReportsByGenUrl(genTaskId))
     return api.saveZipResponse(res)
   },
+
+  composeEmail(incidents, agencyName, agencyEmail) {
+    return request('/api/v1/operator/compose-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        incidents,
+        agency_name: agencyName,
+        agency_email: agencyEmail,
+      }),
+    })
+  },
 }

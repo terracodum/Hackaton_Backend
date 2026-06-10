@@ -348,6 +348,65 @@ def build_district_report_summary(
     return _chat(cfg, prompt, one_sentence=False, num_predict=560, max_chars=900)
 
 
+def compose_operator_email(
+    incidents: list[dict],
+    agency_name: str,
+    cfg: PipelineSettings,
+) -> dict[str, str]:
+    """Генерирует тему и текст письма в ведомство через Ollama."""
+    from datetime import date
+
+    total = len(incidents)
+    critical = sum(1 for i in incidents if i.get("severity", 0) >= 4)
+    high = sum(1 for i in incidents if i.get("severity", 0) == 3)
+    districts = list({i.get("district", "") for i in incidents if i.get("district")})
+    categories = list({i.get("category", "") for i in incidents if i.get("category")})
+    top_cat = categories[0] if categories else "не определена"
+    examples = [i["text"] for i in incidents if i.get("text")][:3]
+    examples_block = "\n".join(f"- {t[:180]}" for t in examples)
+
+    today = date.today().strftime("%d.%m.%Y")
+    deadline = date.today().replace(day=min(date.today().day + 5, 28)).strftime("%d.%m.%Y")
+
+    prompt = (
+        f"Составь официальное письмо от Системы мониторинга обращений граждан ЗероПроблемс "
+        f"в адрес: {agency_name}.\n\n"
+        f"Данные пакета обращений:\n"
+        f"- Всего обращений: {total}\n"
+        f"- Критических (класс 4 — ЧП): {critical}\n"
+        f"- Высокой тяжести (класс 3): {high}\n"
+        f"- Муниципалитеты: {', '.join(districts) or 'не указаны'}\n"
+        f"- Основная тема: {top_cat}\n"
+        f"- Все темы: {', '.join(categories)}\n\n"
+        f"Примеры обращений граждан (обезличенно):\n{examples_block}\n\n"
+        f"Требования к письму:\n"
+        f"1. Официальный деловой стиль, без markdown\n"
+        f"2. Начни с обращения: «Уважаемые коллеги,»\n"
+        f"3. Опиши суть пакета обращений с цифрами\n"
+        f"4. Укажи приоритет реагирования (если критических >= 1 — СРОЧНО)\n"
+        f"5. Запроси подтверждение получения и срок реагирования до {deadline}\n"
+        f"6. Заверши: «С уважением, Система мониторинга ZeroProblems, {today}»\n"
+        f"Объём: 4–6 предложений. Только текст письма, без темы."
+    )
+
+    try:
+        body = _chat(cfg, prompt, one_sentence=False, num_predict=500, max_chars=1200)
+    except Exception:
+        priority = "СРОЧНО" if critical >= 1 else ("ВЫСОКИЙ" if high >= 1 else "СТАНДАРТНЫЙ")
+        body = (
+            f"Уважаемые коллеги,\n\n"
+            f"Направляем пакет из {total} обращений граждан по теме «{top_cat}» "
+            f"из муниципалитетов: {', '.join(districts) or 'Омская область'}.\n"
+            f"Критических обращений (класс ЧП): {critical}. Приоритет реагирования: {priority}.\n"
+            f"Просим рассмотреть обращения и направить подтверждение получения. "
+            f"Срок реагирования: до {deadline}.\n\n"
+            f"С уважением,\nСистема мониторинга ZeroProblems, {today}"
+        )
+
+    subject = f"[ZeroProblems] Пакет обращений — {top_cat} — {total} шт. — {', '.join(districts[:2]) or 'Омская область'}"
+    return {"subject": subject, "body": body}
+
+
 def save_summary_artifacts(
     output_dir: Path,
     executive_summary: str,

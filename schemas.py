@@ -197,3 +197,25 @@ class DepartmentReportsStatus(BaseModel):
     current_agency: Optional[str] = None
     phase: Optional[str] = None
     preview: Optional[DepartmentReportsPreview] = None
+
+
+# --- Оператор: LLM-письмо в ведомство ---
+
+class OperatorIncident(BaseModel):
+    text: str = Field(..., description="Текст обращения")
+    severity: int = Field(..., description="Класс тяжести 0–4")
+    label: str = Field("", description="Название класса тяжести")
+    district: str = Field("", description="Муниципалитет")
+    category: str = Field("", description="Категория / тема")
+
+class ComposeEmailRequest(BaseModel):
+    incidents: List[OperatorIncident] = Field(..., description="Выбранные обращения")
+    agency_name: str = Field(..., description="Название ведомства-получателя")
+    agency_email: str = Field("", description="Email ведомства")
+    model: Optional[str] = Field(None, description="Модель Ollama (опционально)")
+
+class ComposeEmailResponse(BaseModel):
+    subject: str = Field(..., description="Тема письма")
+    body: str = Field(..., description="Тело письма (готовый текст)")
+    agency_name: str
+    agency_email: str

@@ -21,6 +21,8 @@ from app.pdf_report import (  # noqa: I001
 )
 from app.report import build_dashboard, build_district_report, build_top10_excel_from_report, enrich_report_period
 from schemas import (
+    ComposeEmailRequest,
+    ComposeEmailResponse,
     DashboardResponse,
     DatasetUploadResponse,
     DepartmentReportsPreview,
@@ -641,6 +643,30 @@ async def get_generate_status(gen_task_id: str):
         task_id=gen_task_id,
         status=task["status"],
         message=task.get("message", ""),
+    )
+
+
+@api_router.post(
+    "/operator/compose-email",
+    response_model=ComposeEmailResponse,
+    summary="LLM-генерация письма в ведомство по пакету обращений",
+)
+async def compose_operator_email(request: ComposeEmailRequest):
+    from app.config.llm import OLLAMA_MODEL
+    from app.config.settings import PipelineSettings
+    from app.summary import compose_operator_email as _compose
+
+    cfg = PipelineSettings(
+        input_path=DATA_DIR / "input.xlsx",
+        ollama_model=request.model or OLLAMA_MODEL,
+    )
+    incidents = [i.model_dump() for i in request.incidents]
+    result = _compose(incidents, request.agency_name, cfg)
+    return ComposeEmailResponse(
+        subject=result["subject"],
+        body=result["body"],
+        agency_name=request.agency_name,
+        agency_email=request.agency_email,
     )
 
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Zap, TrendingUp, AlertTriangle, RotateCcw, Eye, EyeOff, Loader2, Download, FileType, CalendarRange, Archive } from 'lucide-react'
+import { Zap, TrendingUp, AlertTriangle, RotateCcw, Eye, EyeOff, Loader2, Download, FileType, CalendarRange, Archive, ClipboardList, Siren, BarChart2 } from 'lucide-react'
 import { getAllDemoDistrictReports, getDemoMergedDashboard, demoMeta } from '../demo'
 import { api } from '../api/client'
 import { mergeDashboard } from '../api/adapters'
@@ -12,6 +12,14 @@ import TaskTimingPopover from '../components/TaskTimingPopover'
 import LiveDemoPanel, { LiveDemoToggle } from '../components/LiveDemoPanel'
 import DepartmentReportsModal from '../components/DepartmentReportsModal'
 import { useLiveDemoFeed } from '../hooks/useLiveDemoFeed'
+import OperatorScreen from './OperatorScreen'
+import EmergencyScreen from './EmergencyScreen'
+
+const ROLES = [
+  { id: 'analyst', label: 'Аналитик', icon: BarChart2 },
+  { id: 'operator', label: 'Оператор', icon: ClipboardList },
+  { id: 'emergency', label: 'Экстренный', icon: Siren },
+]
 
 const card = {
   background: 'var(--bg-card)',
@@ -40,6 +48,7 @@ export default function DashboardScreen({
   const [deptModalOpen, setDeptModalOpen] = useState(false)
   const [liveDemoOn, setLiveDemoOn] = useState(false)
   const liveFeed = useLiveDemoFeed(liveDemoOn)
+  const [role, setRole] = useState('analyst')
 
   const applyDashboardMeta = (merged, meta = null) => {
     const start = merged.startDate ?? meta?.start_date
@@ -148,7 +157,7 @@ export default function DashboardScreen({
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-bold tracking-tight text-base" style={{ color: 'var(--text)' }}>ZeroProblems</span>
               <TaskTimingPopover taskId={taskId} isDemo={isDemo} sourceJob={isDemo ? demoMeta.source_job : null} />
-              <LiveDemoToggle enabled={liveDemoOn} onToggle={() => setLiveDemoOn((v) => !v)} />
+              {role === 'analyst' && <LiveDemoToggle enabled={liveDemoOn} onToggle={() => setLiveDemoOn((v) => !v)} />}
             </div>
             {periodLabel && (
               <p className="text-xs mt-0.5 flex items-center gap-1 truncate md:hidden" style={{ color: 'var(--text-2)' }}>
@@ -159,6 +168,29 @@ export default function DashboardScreen({
             )}
           </div>
         </div>
+        {/* role switcher */}
+        <div className="flex items-center rounded-xl overflow-hidden flex-shrink-0"
+          style={{ border: '1px solid var(--border)', background: 'var(--bg-sub)' }}>
+          {ROLES.map((r) => {
+            const Icon = r.icon
+            const active = role === r.id
+            return (
+              <button
+                key={r.id}
+                onClick={() => setRole(r.id)}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-all"
+                style={{
+                  background: active ? (r.id === 'emergency' ? '#dc2626' : '#dc2626') : 'transparent',
+                  color: active ? '#fff' : 'var(--muted)',
+                }}
+              >
+                <Icon className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">{r.label}</span>
+              </button>
+            )
+          })}
+        </div>
+
         <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0 flex-wrap justify-end">
           <div className="hidden md:flex flex-col items-end gap-0.5 text-xs max-w-[min(100%,28rem)]" style={{ color: 'var(--muted)' }}>
             {periodLabel && (
@@ -246,9 +278,12 @@ export default function DashboardScreen({
         onClose={() => setDeptModalOpen(false)}
       />
 
-      <LiveDemoPanel enabled={liveDemoOn} feed={liveFeed} />
+      <LiveDemoPanel enabled={liveDemoOn && role === 'analyst'} feed={liveFeed} />
 
-      <div className="flex-1 flex flex-col xl:flex-row min-h-0 overflow-y-auto xl:overflow-hidden">
+      {role === 'operator' && <OperatorScreen dark={dark} />}
+      {role === 'emergency' && <EmergencyScreen dark={dark} />}
+
+      <div className={`flex-1 flex flex-col xl:flex-row min-h-0 overflow-y-auto xl:overflow-hidden ${role !== 'analyst' ? 'hidden' : ''}`}>
         <div className="w-full xl:w-[46%] 2xl:w-[44%] flex flex-col flex-shrink-0 p-3 sm:p-4 xl:min-h-0 h-[min(48vh,440px)] xl:h-auto xl:max-h-full xl:flex-1">
           <div className="rounded-2xl overflow-hidden flex flex-col shadow-sm flex-1 min-h-[240px]" style={{ ...card }}>
             <div
