@@ -130,14 +130,15 @@ export default function OperatorScreen({ dark }) {
     for (const event of liveFeed.events) {
       if (seenLiveRef.current.has(event.uid)) continue
       seenLiveRef.current.add(event.uid)
-      const { agency } = resolveAgency(event.text, event.group)
+      const { agency, category } = resolveAgency(event.text, event.group)
+      const severity = event.severity ?? 1
       setLiveItems((prev) => [{
         id: `live-${event.uid}`,
         text: event.text,
-        severity: event.severity,
-        label: event.label,
+        severity,
+        label: SEVERITY_LABELS[severity] || event.label,
         district: event.municipality || '',
-        category: event.group || '',
+        category,
         agency,
         isLive: true,
       }, ...prev].slice(0, 30))
