@@ -1,10 +1,17 @@
-import { ChevronRight } from 'lucide-react'
+import { ChevronRight, TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import { scoreColor } from '../utils/scoreColor'
 
 const RANK_BADGE = {
   bg: 'var(--bg-sub)',
   color: 'var(--text-2)',
   border: 'var(--border)',
+}
+
+function riskBadge(score) {
+  if (score >= 75) return { label: 'Критический', Icon: TrendingUp, bg: '#fef2f2', text: '#dc2626' }
+  if (score >= 60) return { label: 'Высокий',     Icon: TrendingUp, bg: '#fff7ed', text: '#ea580c' }
+  if (score >= 45) return { label: 'Умеренный',   Icon: Minus,      bg: '#fefce8', text: '#ca8a04' }
+  return                  { label: 'Стабильный',   Icon: TrendingDown, bg: '#f0fdf4', text: '#16a34a' }
 }
 
 export default function Top10Table({ districts, onDistrictClick }) {
@@ -20,6 +27,7 @@ export default function Top10Table({ districts, onDistrictClick }) {
     <div>
       {districts.map((d, i) => {
         const color = scoreColor(d.score)
+        const risk = riskBadge(d.score)
         return (
           <button
             key={d.id}
@@ -62,12 +70,21 @@ export default function Top10Table({ districts, onDistrictClick }) {
                       </p>
                     )}
                   </div>
-                  <span
-                    className="flex-shrink-0 inline-flex items-center justify-center min-w-[2.25rem] px-2 py-1 rounded-lg font-bold tabular-nums text-sm"
-                    style={{ background: `${color}18`, color }}
-                  >
-                    {d.score}
-                  </span>
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <span
+                      className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold"
+                      style={{ background: risk.bg, color: risk.text }}
+                    >
+                      <risk.Icon className="w-2.5 h-2.5" />
+                      {risk.label}
+                    </span>
+                    <span
+                      className="inline-flex items-center justify-center min-w-[2.25rem] px-2 py-1 rounded-lg font-bold tabular-nums text-sm"
+                      style={{ background: `${color}18`, color }}
+                    >
+                      {d.score}
+                    </span>
+                  </div>
                 </div>
                 {d.summary && (
                   <p
