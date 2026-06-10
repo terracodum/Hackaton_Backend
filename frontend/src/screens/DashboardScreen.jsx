@@ -52,9 +52,11 @@ export default function DashboardScreen({
   const liveFeed = useLiveDemoFeed(liveDemoOn)
   const [role, setRole] = useState('analyst')
   const [kpi, setKpi] = useState(null)
+  const [operatorDistrict, setOperatorDistrict] = useState('')
 
   useEffect(() => {
     if (initialOperatorDistrict) {
+      setOperatorDistrict(initialOperatorDistrict)
       setRole('operator')
       onOperatorDistrictConsumed?.()
     }
@@ -300,7 +302,7 @@ export default function DashboardScreen({
 
       <LiveDemoPanel enabled={liveDemoOn && role === 'analyst'} feed={liveFeed} />
 
-      {role === 'operator' && <OperatorScreen dark={dark} initialDistrict={initialOperatorDistrict} />}
+      {role === 'operator' && <OperatorScreen dark={dark} initialDistrict={operatorDistrict} />}
       {role === 'emergency' && <EmergencyScreen dark={dark} />}
 
       {/* KPI row — analyst only */}

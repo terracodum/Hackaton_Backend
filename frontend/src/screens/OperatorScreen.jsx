@@ -115,6 +115,10 @@ export default function OperatorScreen({ dark, initialDistrict }) {
   const [selected, setSelected] = useState(new Set())
   const [filterSev, setFilterSev] = useState(null)
   const [filterDistrict, setFilterDistrict] = useState(initialDistrict || '')
+
+  useEffect(() => {
+    if (initialDistrict) setFilterDistrict(initialDistrict)
+  }, [initialDistrict])
   const [sent, setSent] = useState(new Set())
   const [sendModal, setSendModal] = useState(null)
   const [successMsg, setSuccessMsg] = useState('')
