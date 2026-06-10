@@ -35,6 +35,8 @@ export default function DashboardScreen({
   onReset,
   dark,
   onToggleTheme,
+  initialOperatorDistrict,
+  onOperatorDistrictConsumed,
 }) {
   const [districts, setDistricts] = useState([])
   const [top10, setTop10] = useState([])
@@ -50,6 +52,13 @@ export default function DashboardScreen({
   const liveFeed = useLiveDemoFeed(liveDemoOn)
   const [role, setRole] = useState('analyst')
   const [kpi, setKpi] = useState(null)
+
+  useEffect(() => {
+    if (initialOperatorDistrict) {
+      setRole('operator')
+      onOperatorDistrictConsumed?.()
+    }
+  }, [initialOperatorDistrict])
 
   const applyDashboardMeta = (merged, meta = null) => {
     const start = merged.startDate ?? meta?.start_date
@@ -156,7 +165,19 @@ export default function DashboardScreen({
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-bold tracking-tight text-base" style={{ color: 'var(--text)' }}>ZeroProblems</span>
               <TaskTimingPopover taskId={taskId} isDemo={isDemo} sourceJob={isDemo ? demoMeta.source_job : null} />
-              {role === 'analyst' && <LiveDemoToggle enabled={liveDemoOn} onToggle={() => setLiveDemoOn((v) => !v)} />}
+              {role === 'analyst' && (
+                <div className="flex items-center gap-1.5">
+                  <LiveDemoToggle enabled={liveDemoOn} onToggle={() => setLiveDemoOn((v) => !v)} />
+                  {!liveDemoOn && liveFeed.received > 0 && (
+                    <span
+                      className="text-[10px] font-bold px-1.5 py-0.5 rounded-full"
+                      style={{ background: '#dcfce7', color: '#16a34a' }}
+                    >
+                      +{liveFeed.received} с сеанса
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
             {periodLabel && (
               <p className="text-xs mt-0.5 flex items-center gap-1 truncate md:hidden" style={{ color: 'var(--text-2)' }}>
@@ -279,7 +300,7 @@ export default function DashboardScreen({
 
       <LiveDemoPanel enabled={liveDemoOn && role === 'analyst'} feed={liveFeed} />
 
-      {role === 'operator' && <OperatorScreen dark={dark} />}
+      {role === 'operator' && <OperatorScreen dark={dark} initialDistrict={initialOperatorDistrict} />}
       {role === 'emergency' && <EmergencyScreen dark={dark} />}
 
       {/* KPI row — analyst only */}

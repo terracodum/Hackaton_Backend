@@ -30,6 +30,8 @@ export default function App() {
 
   const [selectedDistrict, setSelectedDistrict] = useState(null)
 
+  const [operatorInitialDistrict, setOperatorInitialDistrict] = useState(null)
+
   const [dark, setDark] = useState(false)
 
   const [bootstrapped, setBootstrapped] = useState(false)
@@ -158,6 +160,16 @@ export default function App() {
 
   }
 
+  const handleSendToOperator = (districtName) => {
+
+    setOperatorInitialDistrict(districtName)
+
+    setSelectedDistrict(null)
+
+    setScreen('dashboard')
+
+  }
+
 
 
   const handleBack = () => {
@@ -243,6 +255,8 @@ export default function App() {
             onReset={handleReset}
             dark={dark}
             onToggleTheme={toggleTheme}
+            initialOperatorDistrict={operatorInitialDistrict}
+            onOperatorDistrictConsumed={() => setOperatorInitialDistrict(null)}
           />
         </div>
       )}
@@ -258,6 +272,8 @@ export default function App() {
           isDemo={isDemo}
 
           onBack={handleBack}
+
+          onSendToOperator={handleSendToOperator}
 
           dark={dark}
 

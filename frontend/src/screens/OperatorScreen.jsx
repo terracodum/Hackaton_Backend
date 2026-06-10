@@ -111,10 +111,10 @@ function buildIncidents() {
 
 const ALL_INCIDENTS = buildIncidents()
 
-export default function OperatorScreen({ dark }) {
+export default function OperatorScreen({ dark, initialDistrict }) {
   const [selected, setSelected] = useState(new Set())
   const [filterSev, setFilterSev] = useState(null)
-  const [filterDistrict, setFilterDistrict] = useState('')
+  const [filterDistrict, setFilterDistrict] = useState(initialDistrict || '')
   const [sent, setSent] = useState(new Set())
   const [sendModal, setSendModal] = useState(null)
   const [successMsg, setSuccessMsg] = useState('')

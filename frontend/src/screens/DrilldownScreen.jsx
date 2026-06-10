@@ -13,6 +13,7 @@ import {
   BotMessageSquare,
   FileSearch,
   Loader2,
+  Send,
 } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import ThemeToggle from '../components/ThemeToggle'
@@ -105,7 +106,7 @@ function SeverityChartCard({ severityStat, cardStyle }) {
   )
 }
 
-export default function DrilldownScreen({ district: initialDistrict, taskId, isDemo, onBack, dark, onToggleTheme }) {
+export default function DrilldownScreen({ district: initialDistrict, taskId, isDemo, onBack, onSendToOperator, dark, onToggleTheme }) {
   const [district, setDistrict] = useState(initialDistrict)
   const [loading, setLoading] = useState(!!taskId)
   const [generating, setGenerating] = useState(false)
@@ -307,6 +308,16 @@ export default function DrilldownScreen({ district: initialDistrict, taskId, isD
         </span>
         <TaskTimingPopover taskId={taskId} isDemo={isDemo} sourceJob={isDemo ? demoMeta.source_job : null} />
         <div className="ml-auto flex items-center gap-1.5 sm:gap-2 flex-wrap justify-end w-full sm:w-auto">
+          {onSendToOperator && (
+            <button
+              onClick={() => onSendToOperator(district.name)}
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+              style={{ border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-2)' }}
+            >
+              <Send className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">В ведомство</span>
+            </button>
+          )}
           {taskId && (
             <button
               onClick={handleFullReport}
