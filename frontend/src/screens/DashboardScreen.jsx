@@ -49,17 +49,16 @@ export default function DashboardScreen({
   const [liveDemoOn, setLiveDemoOn] = useState(false)
   const liveFeed = useLiveDemoFeed(liveDemoOn)
   const [role, setRole] = useState('analyst')
+  const [kpi, setKpi] = useState(null)
 
   const applyDashboardMeta = (merged, meta = null) => {
     const start = merged.startDate ?? meta?.start_date
     const end = merged.endDate ?? meta?.end_date
     setPeriodLabel(formatPeriod(start, end))
-    setStatsLabel(
-      formatIncidentStats({
-        totalIncidents: merged.totalIncidents ?? meta?.rows_total,
-        problemCount: merged.problemCount ?? meta?.problem_count,
-      }),
-    )
+    const total = merged.totalIncidents ?? meta?.rows_total
+    const problems = merged.problemCount ?? meta?.problem_count
+    setStatsLabel(formatIncidentStats({ totalIncidents: total, problemCount: problems }))
+    if (total) setKpi({ total, problems })
   }
 
   const handleRegionPdf = async () => {
@@ -282,6 +281,53 @@ export default function DashboardScreen({
 
       {role === 'operator' && <OperatorScreen dark={dark} />}
       {role === 'emergency' && <EmergencyScreen dark={dark} />}
+
+      {/* KPI row — analyst only */}
+      {role === 'analyst' && kpi && (
+        <div
+          className="flex-shrink-0 grid grid-cols-2 sm:grid-cols-4 gap-px"
+          style={{ background: 'var(--border)' }}
+        >
+          {[
+            {
+              label: 'Обращений',
+              value: kpi.total.toLocaleString('ru-RU'),
+              sub: 'всего за период',
+              color: 'var(--text)',
+            },
+            {
+              label: 'Проблемных',
+              value: `${((kpi.problems / kpi.total) * 100).toFixed(1)}%`,
+              sub: `${kpi.problems.toLocaleString('ru-RU')} обращений`,
+              color: '#f97316',
+            },
+            {
+              label: 'Критических МО',
+              value: critical.length,
+              sub: 'требуют реагирования',
+              color: '#dc2626',
+            },
+            {
+              label: 'Муниципалитетов',
+              value: districts.length,
+              sub: 'охвачено анализом',
+              color: '#3b82f6',
+            },
+          ].map((item) => (
+            <div
+              key={item.label}
+              className="flex flex-col justify-center px-4 py-3"
+              style={{ background: 'var(--bg-card)' }}
+            >
+              <div className="text-xl sm:text-2xl font-black tabular-nums" style={{ color: item.color }}>
+                {item.value}
+              </div>
+              <div className="text-xs font-semibold mt-0.5" style={{ color: 'var(--text)' }}>{item.label}</div>
+              <div className="text-[10px] mt-0.5" style={{ color: 'var(--muted)' }}>{item.sub}</div>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className={`flex-1 flex flex-col xl:flex-row min-h-0 overflow-y-auto xl:overflow-hidden ${role !== 'analyst' ? 'hidden' : ''}`}>
         <div className="w-full xl:w-[46%] 2xl:w-[44%] flex flex-col flex-shrink-0 p-3 sm:p-4 xl:min-h-0 h-[min(48vh,440px)] xl:h-auto xl:max-h-full xl:flex-1">

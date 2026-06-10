@@ -1,12 +1,20 @@
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, TrendingUp, TrendingDown, Minus } from 'lucide-react'
 
 import { scoreColor } from '../utils/scoreColor'
 const rankLabel  = ['Критичный', 'Очень высокий', 'Высокий']
+
+function riskBadge(score) {
+  if (score >= 75) return { label: 'Критический риск', icon: TrendingUp, bg: '#fef2f2', text: '#dc2626' }
+  if (score >= 60) return { label: 'Высокий риск',    icon: TrendingUp, bg: '#fff7ed', text: '#ea580c' }
+  if (score >= 45) return { label: 'Умеренный',       icon: Minus,      bg: '#fefce8', text: '#ca8a04' }
+  return                  { label: 'Стабильный',       icon: TrendingDown, bg: '#f0fdf4', text: '#16a34a' }
+}
 
 export default function DistrictCard({ district, rank, onClick }) {
   const color = scoreColor(district.score)
   const total = district.totalIncidents ?? district.problems.reduce((s, p) => s + p.count, 0)
   const label = district.criticalityStatus || rankLabel[rank - 1]
+  const risk = riskBadge(district.score)
 
   return (
     <div
@@ -54,9 +62,15 @@ export default function DistrictCard({ district, rank, onClick }) {
         </div>
       )}
 
-      <div className="flex items-center justify-between text-xs mt-auto pt-1" style={{ color: 'var(--muted)' }}>
-        <span>{total} обращений</span>
-        <div className="flex items-center gap-1">Подробнее <ArrowRight className="w-3 h-3" /></div>
+      <div className="flex items-center justify-between text-xs mt-auto pt-1 gap-2">
+        <span style={{ color: 'var(--muted)' }}>{total} обращений</span>
+        <div
+          className="flex items-center gap-1 px-2 py-0.5 rounded-full flex-shrink-0 font-semibold"
+          style={{ background: risk.bg, color: risk.text }}
+        >
+          <risk.icon className="w-3 h-3" />
+          {risk.label}
+        </div>
       </div>
     </div>
   )
