@@ -130,7 +130,7 @@ export default function OperatorScreen({ dark }) {
     for (const event of liveFeed.events) {
       if (seenLiveRef.current.has(event.uid)) continue
       seenLiveRef.current.add(event.uid)
-      const agency = AGENCY_MAP[event.group] || FALLBACK_AGENCY
+      const { agency } = resolveAgency(event.text, event.group)
       setLiveItems((prev) => [{
         id: `live-${event.uid}`,
         text: event.text,
