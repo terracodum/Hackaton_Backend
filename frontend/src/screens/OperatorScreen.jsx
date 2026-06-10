@@ -144,14 +144,16 @@ export default function OperatorScreen({ dark }) {
     }
   }, [liveFeed.events])
 
-  const districts = useMemo(() => [...new Set(ALL_INCIDENTS.map((i) => i.district))].sort(), [])
+  const allItems = useMemo(() => [...liveItems, ...ALL_INCIDENTS], [liveItems])
+
+  const districts = useMemo(() => [...new Set(allItems.map((i) => i.district))].sort(), [allItems])
 
   const filtered = useMemo(() => {
-    let items = ALL_INCIDENTS
+    let items = allItems
     if (filterSev !== null) items = items.filter((i) => i.severity === filterSev)
     if (filterDistrict) items = items.filter((i) => i.district === filterDistrict)
     return items
-  }, [filterSev, filterDistrict])
+  }, [allItems, filterSev, filterDistrict])
 
   const toggle = (id) => setSelected((prev) => {
     const next = new Set(prev)
@@ -270,7 +272,7 @@ export default function OperatorScreen({ dark }) {
         </select>
 
         <div className="ml-auto flex items-center gap-3">
-          <LiveDemoToggle enabled={liveOn} onToggle={() => { setLiveOn((v) => !v); if (liveOn) setLiveItems([]) }} />
+          <LiveDemoToggle enabled={liveOn} onToggle={() => setLiveOn((v) => !v)} />
           {selected.size > 0 && (
             <span className="text-xs" style={{ color: 'var(--muted)' }}>
               Выбрано: {selected.size}
@@ -314,43 +316,6 @@ export default function OperatorScreen({ dark }) {
           </button>
         </div>
 
-        {/* live items */}
-        {liveItems.map((item) => {
-          const color = SEVERITY_COLORS[item.severity]
-          return (
-            <div
-              key={item.id}
-              className="flex gap-3 p-3.5 rounded-xl"
-              style={{
-                background: 'var(--bg-card)',
-                border: `1.5px solid ${color}`,
-                borderRadius: 12,
-                animation: 'fadeIn 0.4s ease-out',
-              }}
-            >
-              <div className="flex-shrink-0 mt-0.5">
-                <Square className="w-4 h-4" style={{ color: 'var(--muted)' }} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                  <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full animate-pulse"
-                    style={{ background: '#16a34a', color: '#fff' }}>● LIVE</span>
-                  <span className="text-xs font-bold px-2 py-0.5 rounded-full"
-                    style={{ background: `${color}22`, color }}>
-                    {item.label} · {item.severity}
-                  </span>
-                  <span className="text-xs" style={{ color: 'var(--muted)' }}>{item.district}</span>
-                  <span className="text-xs" style={{ color: 'var(--muted)' }}>· {item.category}</span>
-                </div>
-                <p className="text-sm leading-relaxed" style={{ color: 'var(--text-2)' }}>{item.text}</p>
-                <div className="mt-2 flex items-center gap-1.5 text-xs" style={{ color: 'var(--muted)' }}>
-                  <Building2 className="w-3 h-3" />{item.agency.name}
-                </div>
-              </div>
-            </div>
-          )
-        })}
-
         {filtered.map((item) => {
           const isSent = sent.has(item.id)
           const isSelected = selected.has(item.id)
@@ -364,7 +329,7 @@ export default function OperatorScreen({ dark }) {
               style={{
                 ...card,
                 opacity: isSent ? 0.5 : 1,
-                boxShadow: isSelected ? `0 0 0 2px ${color}` : 'none',
+                boxShadow: isSelected ? `0 0 0 2px ${color}` : item.isLive ? `0 0 0 1.5px #16a34a` : 'none',
                 cursor: isSent ? 'default' : 'pointer',
               }}
             >
@@ -379,6 +344,10 @@ export default function OperatorScreen({ dark }) {
 
               <div className="flex-1 min-w-0">
                 <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                  {item.isLive && (
+                    <span className="text-[10px] font-black px-1.5 py-0.5 rounded animate-pulse"
+                      style={{ background: '#16a34a', color: '#fff' }}>● LIVE</span>
+                  )}
                   <span
                     className="text-xs font-bold px-2 py-0.5 rounded-full"
                     style={{ background: `${color}22`, color }}
